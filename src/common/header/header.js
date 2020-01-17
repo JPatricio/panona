@@ -1,19 +1,30 @@
 import React from 'react';
 
-import {Navbar, Nav} from 'react-bootstrap';
+import {Navbar, Nav, NavItem} from 'react-bootstrap';
+import { LinkContainer } from "react-router-bootstrap";
 
+import './header.css'
 
 class Header extends React.Component{
     render() {
         const logged_out_nav = (
-            <ul>
-                <li onClick={() => this.props.display_form('login')}>login</li>
-                <li onClick={() => this.props.display_form('signup')}>signup</li>
-            </ul>
+            <Navbar collapseOnSelect expand="lg" bg="dark" variant="dark">
+                <Navbar.Brand href="#home">Panona</Navbar.Brand>
+                <Navbar.Toggle aria-controls="responsive-navbar-nav" />
+                <Navbar.Collapse>
+                    <Nav className="ml-auto">
+                        <LinkContainer to="/login">
+                            <NavItem>Login</NavItem>
+                        </LinkContainer>
+                        <LinkContainer to="/register">
+                            <NavItem>Signup</NavItem>
+                        </LinkContainer>
+                    </Nav>
+                </Navbar.Collapse>
+            </Navbar>
         );
 
         const logged_in_nav = (
-
                 <Navbar collapseOnSelect expand="lg" bg="dark" variant="dark">
                     <Navbar.Brand href="#home">Panona</Navbar.Brand>
                     <Navbar.Toggle aria-controls="responsive-navbar-nav" />
@@ -31,7 +42,6 @@ class Header extends React.Component{
                         </Nav>
                     </Navbar.Collapse>
                 </Navbar>
-
         );
 
         return (

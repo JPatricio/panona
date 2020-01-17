@@ -1,18 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
+import {BrowserRouter as Router, Route, Switch} from "react-router-dom";
 
 import Header from './common/header/header';
-import LoginForm from "./common/auth/login_form";
-import SignupForm from "./common/auth/signup_form";
-
+import Routes from "./common/routing/Routes";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import './index.css';
-import {BrowserRouter as Router, Route, Switch} from "react-router-dom";
-import Collection from "./collection";
-import Market from "./market";
-import Work from "./work";
 
+import './index.css';
 
 class Game extends React.Component {
 
@@ -32,39 +27,26 @@ class Game extends React.Component {
                     Authorization: `JWT ${localStorage.getItem('token')}`
                 }
             })
-                .then(res => res.json())
+                .then(res => {
+                    if (res.ok) {
+                        return res.json();
+                    } else {
+                        throw new Error('Probably a 401 unauthorized but build better error handling later');
+                    }
+                })
                 .then(json => {
-                    console.log(json);
-                    console.log(json.username);
                     this.setState({
                         username: json.username,
                         money: json.money,
                         gems: json.gems,
                         experience: json.experience
                     });
-                });
+                })
+                .catch(error => this.setState({
+                    logged_in: false
+                }));
         }
     }
-
-    handle_login = (e, data) => {
-        e.preventDefault();
-        fetch('http://localhost:8000/token-auth/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        })
-            .then(res => res.json())
-            .then(json => {
-                localStorage.setItem('token', json.token);
-                this.setState({
-                    logged_in: true,
-                    displayed_form: '',
-                    username: json.user.username
-                });
-            });
-    };
 
     handle_signup = (e, data) => {
         e.preventDefault();
@@ -91,24 +73,17 @@ class Game extends React.Component {
         this.setState({ logged_in: false, username: '' });
     };
 
-    display_form = form => {
+    handle_login = (response) => {
+        console.log(response);
+
+        localStorage.setItem('token', response.token);
         this.setState({
-            displayed_form: form
+            logged_in: true,
+            username: response.user.username
         });
     };
 
     render() {
-        let form;
-        switch (this.state.displayed_form) {
-            case 'login':
-                form = <LoginForm handle_login={this.handle_login} />;
-                break;
-            case 'signup':
-                form = <SignupForm handle_signup={this.handle_signup} />;
-                break;
-            default:
-                form = null;
-        }
         return (
             <Router>
                 <Header
@@ -117,15 +92,11 @@ class Game extends React.Component {
                     money={this.state.logged_in ? this.state.money : null}
                     gems={this.state.logged_in ? this.state.gems : null}
                     experience={this.state.logged_in ? this.state.experience : null}
-                    display_form={this.display_form}
                     handle_logout={this.handle_logout}
                 />
-                {form}
-                <Switch>
-                    <Route path='/collection' component={Collection} />
-                    <Route path='/market' component={Market} />
-                    <Route path='/work' component={Work} />
-                </Switch>
+                <Routes
+                    appProps={{ handle_login: this.handle_login }}
+                />
             </Router>
         );
     }
